@@ -8,7 +8,7 @@ var db = new sqlite3.Database('data/RuTube.sqlite');
 /**
  * Get all users from the database
  */
-router.get('/users', function(req, res) {
+router.get('/', function(req, res) {
   db.all('SELECT * FROM users', function(err, row) {
     if (err) return res.json(412, err);
     res.json(row);
@@ -18,7 +18,7 @@ router.get('/users', function(req, res) {
 /**
  * Add a new user to database
  */
-router.post('/users', function(req, res) {
+router.post('/', function(req, res) {
   if(req.headers.token != "admin"){
     res.statusCode = 401;
     return res.json('Invalid token');
@@ -42,7 +42,7 @@ router.post('/users', function(req, res) {
 /**
  * Get user from database by id
  */
-router.get('/users/:id', function(req, res) {
+router.get('/:id', function(req, res) {
   db.all("SELECT * FROM users WHERE id='" + req.params.id + "'", function(err, row) {
     if (err) return res.json(412, err);
     res.json(row);
@@ -52,7 +52,7 @@ router.get('/users/:id', function(req, res) {
 /**
  * Delete user from database
  */
-router.delete('/users/:id', function(req, res) {
+router.delete('/:id', function(req, res) {
   if(req.headers.token != "admin"){
     res.statusCode = 401;
     return res.json('Invalid token');
@@ -66,7 +66,7 @@ router.delete('/users/:id', function(req, res) {
 /**
  * Get all videos from the database
  */
-router.get('/videos', function(req, res) {
+router.get('/', function(req, res) {
   db.all('SELECT * FROM videos', function(err, row) {
     if (err) return res.json(412, err);
     res.json(row);
