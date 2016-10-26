@@ -10,6 +10,10 @@ var app = express();
 app.use(bodyParser.json());
 app.use(bodyParser.urlencoded({ extended: false }));
 
+/**
+ * Give the different views appropriate routes
+ */
+
 app.use('/users', routes);
 app.use('/videos', videos);
 

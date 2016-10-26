@@ -5,10 +5,7 @@ var http = require("http");
 var express = require('express');
 var router = express.Router();
 
-//var http = require('http');
-//var express = require('express');
-//var sqlite3 = require('sqlite3').verbose();
-//var db = new sqlite3.Database('data/RuTube.sqlite');
+var db = require('../models/database');
 
 describe("Routing", function() {
 

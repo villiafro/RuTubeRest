@@ -1,13 +1,11 @@
 var express = require('express');
 var router = express.Router();
-
-var http = require('http');
-var sqlite3 = require('sqlite3').verbose();
-var db = new sqlite3.Database('data/RuTube.sqlite');
+var db = require('../models/database');
 
 /**
  * Get all users from the database
  */
+
 router.get('/', function(req, res) {
   db.all('SELECT * FROM users', function(err, row) {
     if (err) return res.json(412, err);
@@ -18,6 +16,7 @@ router.get('/', function(req, res) {
 /**
  * Add a new user to database
  */
+
 router.post('/', function(req, res) {
   if(req.headers.token != "admin"){
     res.statusCode = 401;
@@ -42,6 +41,7 @@ router.post('/', function(req, res) {
 /**
  * Get user from database by id
  */
+
 router.get('/:id', function(req, res) {
   db.all("SELECT * FROM users WHERE id='" + req.params.id + "'", function(err, row) {
     if (err) return res.json(412, err);
@@ -52,6 +52,7 @@ router.get('/:id', function(req, res) {
 /**
  * Delete user from database
  */
+
 router.delete('/:id', function(req, res) {
   if(req.headers.token != "admin"){
     res.statusCode = 401;
@@ -66,6 +67,7 @@ router.delete('/:id', function(req, res) {
 /**
  * Get all videos from the database
  */
+
 router.get('/', function(req, res) {
   db.all('SELECT * FROM videos', function(err, row) {
     if (err) return res.json(412, err);
