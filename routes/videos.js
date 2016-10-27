@@ -4,6 +4,7 @@ var db = require('../models/database');
 
 /**
  * Get all videos from the database
+ * using: http://localhost:3000/videos
  */
 
 router.get('/', function (req, res) {
@@ -14,29 +15,8 @@ router.get('/', function (req, res) {
 });
 
 /**
- * Get a single video
- */
-
-router.get('/:id', function(req, res) {
-    db.all("SELECT * FROM videos WHERE id='" + req.params.id + "'", function(err, row) {
-        if (err) return res.json(412, err);
-        res.json(row);
-    });
-});
-
-/**
- * Get all videos from a single user
- */
-
-router.get('/channel/:id', function (req, res) {
-    db.all("SELECT * FROM videos WHERE u_id='" + req.params.id + "'", function (err, row) {
-        if (err) return res.json(412, err);
-        res.json(row);
-    });
-});
-
-/**
- * Post a single video
+ * Post a single video to database
+ * using: http://localhost:3000/videos
  */
 
 router.post('/', function (req, res) {
@@ -53,7 +33,20 @@ router.post('/', function (req, res) {
 });
 
 /**
- * Delete a single video
+ * Get a single video from database
+ * using: http://localhost:3000/videos/{id}
+ */
+
+router.get('/:id', function(req, res) {
+    db.all("SELECT * FROM videos WHERE id='" + req.params.id + "'", function(err, row) {
+        if (err) return res.json(412, err);
+        res.json(row);
+    });
+});
+
+/**
+ * Delete a single video from database
+ * using: http://localhost:3000/videos/{id}
  */
 
 router.delete('/:id', function(req, res) {
@@ -64,6 +57,18 @@ router.delete('/:id', function(req, res) {
     db.run("DELETE FROM videos WHERE id='" + req.params.id + "'", function(err) {
         if (err) return res.json(412, err);
         res.json(true);
+    });
+});
+
+/**
+ * Get all videos from a single user
+ * using: http://localhost:3000/videos/channel/{id}
+ */
+
+router.get('/channel/:id', function (req, res) {
+    db.all("SELECT * FROM videos WHERE u_id='" + req.params.id + "'", function (err, row) {
+        if (err) return res.json(412, err);
+        res.json(row);
     });
 });
 

@@ -4,6 +4,7 @@ var db = require('../models/database');
 
 /**
  * Get all users from the database
+ * using: http://localhost:3000/users
  */
 
 router.get('/users', function(req, res) {
@@ -15,6 +16,7 @@ router.get('/users', function(req, res) {
 
 /**
  * Add a new user to database
+ * using: http://localhost:3000/users
  */
 
 router.post('/users', function(req, res) {
@@ -25,6 +27,11 @@ router.post('/users', function(req, res) {
   var password = req.body.password;
   var email = req.body.email;
   var admin = req.body.admin;
+
+  if(typeof username === 'undefined' || typeof password === 'undefined'){
+      res.statusCode = 401;
+      return res.json('Missing attributes');
+  }
 
   var sqlRequest = "INSERT INTO 'users' (id, firstname, lastname, username, password, email, admin) " +
                     "VALUES('" + id + "', '" + firstname + "', '" + lastname + "', '" + username + "', '" + password + "', '" + email + "', '" + admin + "')"

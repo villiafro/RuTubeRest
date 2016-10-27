@@ -2,31 +2,42 @@ var express = require('express');
 var router = express.Router();
 var db = require('../models/database');
 
+function getUserById(id) {
+    db.all("SELECT password FROM users WHERE id='" + id + "'", function (err, row) {
+        if (err) return null;
+        return row[0].password;
+    });
+}
+
 /**
  * Get user from database by id
+ * using: http://localhost:3000/users/{id}
  */
 
 router.get('/:id', function(req, res) {
-    if(req.headers.token != "admin"){
+    var userid = getUserById(req.params.id);
+    if(req.headers.token !== "admin" && req.headers.token !== userid){
         res.statusCode = 401;
         return res.json('Invalid token');
     }
-    db.all("SELECT * FROM users WHERE id='" + req.params.id + "'", function(err, row) {
-        if (err) return res.json(412, err);
-        res.json(row);
+    db.all("SELECT * FROM users WHERE id='" + req.params.id + "'", function(err2, row2) {
+        if (err2) return res.json(412, err2);
+        res.json(row2);
     });
 });
 
 /**
  * Delete user from database
+ * using: http://localhost:3000/users/{id}
  */
 
 router.delete('/:id', function(req, res) {
-    if(req.headers.token != "admin"){
+    var userid = getUserById(req.params.id);
+    if(req.headers.token !== "admin" && req.headers.token !== userid){
         res.statusCode = 401;
         return res.json('Invalid token');
     }
-    db.run("DELETE FROM users WHERE id='" + req.params.id + "'", function(err) {
+    db.run("DELETE FROM users WHERE id='" + req.params.id + "'", function (err) {
         if (err) return res.json(412, err);
         res.json(true);
     });
@@ -34,9 +45,12 @@ router.delete('/:id', function(req, res) {
 
 /**
  * Change username and/or password of user
+ * using: http://localhost:3000/users/{id}/username
  */
+
 router.put('/:id/username', function(req, res){
-    if(req.headers.token != "admin"){
+    var userid = getUserById(req.params.id);
+    if(req.headers.token !== "admin" && req.headers.token !== userid){
         res.statusCode = 401;
         return res.json('Invalid token');
     }
@@ -48,9 +62,11 @@ router.put('/:id/username', function(req, res){
 
 /**
  * Change password of user
+ * using: http://localhost:3000/users/{id}/password
  */
 router.put('/:id/password', function(req, res){
-    if(req.headers.token != "admin"){
+    var userid = getUserById(req.params.id);
+    if(req.headers.token !== "admin" && req.headers.token !== userid){
         res.statusCode = 401;
         return res.json('Invalid token');
     }
@@ -62,10 +78,12 @@ router.put('/:id/password', function(req, res){
 
 /**
  * Get users list of favorite videos
+ * using: http://localhost:3000/users/{id}/favourites
  */
 
 router.get('/:id/favourites', function (req, res) {
-    if(req.headers.token != "admin"){
+    var userid = getUserById(req.params.id);
+    if(req.headers.token !== "admin" && req.headers.token !== userid){
         res.statusCode = 401;
         return res.json('Invalid token');
     }
@@ -79,11 +97,13 @@ router.get('/:id/favourites', function (req, res) {
 });
 
 /**
- * Add a new favourite video
+ * Add a new favourite video to database
+ * using: http://localhost:3000/users/{id}/favourites
  */
 
 router.post('/:id/favourites', function(req, res) {
-    if(req.headers.token != "admin"){
+    var userid = getUserById(req.params.id);
+    if(req.headers.token !== "admin" && req.headers.token !== userid){
         res.statusCode = 401;
         return res.json('Invalid token');
     }
@@ -99,11 +119,13 @@ router.post('/:id/favourites', function(req, res) {
 });
 
 /**
- * Delete a favourite video
+ * Delete a favourite video from database
+ * using: http://localhost:3000/users/{id}/favourites
  */
 
 router.delete('/:id/favourites', function(req, res) {
-    if(req.headers.token != "admin"){
+    var userid = getUserById(req.params.id);
+    if(req.headers.token !== "admin" && req.headers.token !== userid){
         res.statusCode = 401;
         return res.json('Invalid token');
     }
@@ -114,11 +136,13 @@ router.delete('/:id/favourites', function(req, res) {
 });
 
 /**
- * Get users friend list
+ * Get users friend list from database
+ * using: http://localhost:3000/users/{id}/friends
  */
 
 router.get('/:id/friends', function (req, res) {
-    if(req.headers.token != "admin"){
+    var userid = getUserById(req.params.id);
+    if(req.headers.token !== "admin" && req.headers.token !== userid){
         res.statusCode = 401;
         return res.json('Invalid token');
     }
@@ -133,10 +157,12 @@ router.get('/:id/friends', function (req, res) {
 
 /**
  * Add friend to users friend list
+ * using: http://localhost:3000/users/{id}/friends
  */
 
 router.post('/:id/friends', function(req, res) {
-    if(req.headers.token != "admin"){
+    var userid = getUserById(req.params.id);
+    if(req.headers.token !== "admin" && req.headers.token !== userid){
         res.statusCode = 401;
         return res.json('Invalid token');
     }
@@ -158,10 +184,12 @@ router.post('/:id/friends', function(req, res) {
 
 /**
  * Delete a a friend from friend list
+ * using: http://localhost:3000/users/{id}/friends
  */
 
 router.delete('/:id/friends', function(req, res) {
-    if(req.headers.token != "admin"){
+    var userid = getUserById(req.params.id);
+    if(req.headers.token !== "admin" && req.headers.token !== userid){
         res.statusCode = 401;
         return res.json('Invalid token');
     }
