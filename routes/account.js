@@ -7,7 +7,7 @@ var db = require('../models/database');
  */
 
 router.get('/users', function(req, res) {
-  db.all('SELECT * FROM users', function(err, row) {
+  db.all('SELECT id,username,firstname,lastname,email FROM users', function(err, row) {
     if (err) return res.json(412, err);
     res.json(row);
   });
