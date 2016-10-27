@@ -11,7 +11,7 @@ describe("Routing", function() {
 
     describe("Users", function() {
 
-        it("getting users from database should returns status code 200", function(done) {
+        it("getting users from database should return status code 200", function(done) {
             var url = "http://localhost:3000/users";
             request(url, function(err, res) {
                 expect(res.statusCode).to.equal(200);
@@ -19,7 +19,7 @@ describe("Routing", function() {
             });
         });
 
-        it("getting user 0 should return the right user from database", function(done) {
+        it("getting user with id 0 should return the right user from database", function(done) {
             var url = "http://localhost:3000/users/0";
             request(url, function(err, res, body) {
                 expect(body).to.equal('[{"id":0,"firstname":"Vilhjalmur","lastname":"Hannesson","username":"villi","password":"villi","email":"villi@gmail.com","admin":1}]');
