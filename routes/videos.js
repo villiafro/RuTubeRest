@@ -54,7 +54,7 @@ router.delete('/:id', function(req, res) {
         res.statusCode = 401;
         return res.json('Invalid token');
     }
-    db.run("DELETE FROM videos WHERE id='" + req.params.id + "'", function(err) {
+    db.run("DELETE FROM 'videos' WHERE id='" + req.params.id + "'", function(err) {
         if (err) return res.json(412, err);
         res.json(true);
     });

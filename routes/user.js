@@ -2,10 +2,15 @@ var express = require('express');
 var router = express.Router();
 var db = require('../models/database');
 
+var request = require('request');
+var Promise = require('promise');
+
 function getUserById(id) {
-    db.all("SELECT password FROM users WHERE id='" + id + "'", function (err, row) {
-        if (err) return null;
-        return row[0].password;
+    return new Promise(function (resolve, reject){
+        db.all("SELECT password FROM users WHERE id='" + id + "'", function (err, row) {
+            if (err) reject(err);
+            else resolve(row[0].password);
+        });
     });
 }
 
@@ -15,15 +20,25 @@ function getUserById(id) {
  */
 
 router.get('/:id', function(req, res) {
-    var userid = getUserById(req.params.id);
-    if(req.headers.token !== "admin" && req.headers.token !== userid){
+    getUserById(req.params.id).then(function(userid){
+        if(req.headers.token !== "admin" && req.headers.token !== userid){
+            res.statusCode = 401;
+            return res.json('Invalid token');
+        }
+        db.all("SELECT * FROM users WHERE id='" + req.params.id + "'", function(err2, row2) {
+            if (err2) return res.json(412, err2);
+            res.json(row2);
+        });
+    });
+    //var userid = getUserById(req.params.id);
+    /*if(req.headers.token !== "admin" && req.headers.token !== userid){
         res.statusCode = 401;
         return res.json('Invalid token');
     }
     db.all("SELECT * FROM users WHERE id='" + req.params.id + "'", function(err2, row2) {
         if (err2) return res.json(412, err2);
         res.json(row2);
-    });
+    });*/
 });
 
 /**
@@ -32,31 +47,33 @@ router.get('/:id', function(req, res) {
  */
 
 router.delete('/:id', function(req, res) {
-    var userid = getUserById(req.params.id);
-    if(req.headers.token !== "admin" && req.headers.token !== userid){
-        res.statusCode = 401;
-        return res.json('Invalid token');
-    }
-    db.run("DELETE FROM users WHERE id='" + req.params.id + "'", function (err) {
-        if (err) return res.json(412, err);
-        res.json(true);
+    getUserById(req.params.id).then(function(userid) {
+        if(req.headers.token !== "admin" && req.headers.token !== userid){
+            res.statusCode = 401;
+            return res.json('Invalid token');
+        }
+        db.run("DELETE FROM 'users' WHERE id='" + req.params.id + "'", function (err) {
+            if (err) return res.json(412, err);
+            res.json(true);
+        });
     });
 });
 
 /**
- * Change username and/or password of user
+ * Change username of user
  * using: http://localhost:3000/users/{id}/username
  */
 
 router.put('/:id/username', function(req, res){
-    var userid = getUserById(req.params.id);
-    if(req.headers.token !== "admin" && req.headers.token !== userid){
-        res.statusCode = 401;
-        return res.json('Invalid token');
-    }
-    db.run("UPDATE users SET username='" + req.body.username + "' WHERE id='" + req.params.id + "'", function(err) {
-        if (err) return res.json(412, err);
-        res.json(true);
+    getUserById(req.params.id).then(function(userid) {
+        if(req.headers.token !== "admin" && req.headers.token !== userid){
+            res.statusCode = 401;
+            return res.json('Invalid token');
+        }
+        db.run("UPDATE 'users' SET username='" + req.body.username + "' WHERE id='" + req.params.id + "'", function(err) {
+            if (err) return res.json(412, err);
+            res.json(true);
+        });
     });
 });
 
@@ -65,14 +82,15 @@ router.put('/:id/username', function(req, res){
  * using: http://localhost:3000/users/{id}/password
  */
 router.put('/:id/password', function(req, res){
-    var userid = getUserById(req.params.id);
-    if(req.headers.token !== "admin" && req.headers.token !== userid){
-        res.statusCode = 401;
-        return res.json('Invalid token');
-    }
-    db.run("UPDATE users SET password='" + req.body.password + "' WHERE id='" + req.params.id + "'", function(err) {
-        if (err) return res.json(412, err);
-        res.json(true);
+    getUserById(req.params.id).then(function(userid) {
+        if(req.headers.token !== "admin" && req.headers.token !== userid){
+            res.statusCode = 401;
+            return res.json('Invalid token');
+        }
+        db.run("UPDATE 'users' SET password='" + req.body.password + "' WHERE id='" + req.params.id + "'", function(err) {
+            if (err) return res.json(412, err);
+            res.json(true);
+        });
     });
 });
 
@@ -82,17 +100,18 @@ router.put('/:id/password', function(req, res){
  */
 
 router.get('/:id/favourites', function (req, res) {
-    var userid = getUserById(req.params.id);
-    if(req.headers.token !== "admin" && req.headers.token !== userid){
-        res.statusCode = 401;
-        return res.json('Invalid token');
-    }
-    var query = "SELECT * FROM videos " +
-                "JOIN favourites ON videos.id = favourites.v_id " +
-                "WHERE favourites.u_id='" + req.params.id + "'";
-    db.all(query, function(err, row) {
-        if (err) return res.json(412, err);
-        res.json(row);
+    getUserById(req.params.id).then(function(userid) {
+        if(req.headers.token !== "admin" && req.headers.token !== userid){
+            res.statusCode = 401;
+            return res.json('Invalid token');
+        }
+        var query = "SELECT * FROM videos " +
+            "JOIN favourites ON videos.id = favourites.v_id " +
+            "WHERE favourites.u_id='" + req.params.id + "'";
+        db.all(query, function(err, row) {
+            if (err) return res.json(412, err);
+            res.json(row);
+        });
     });
 });
 
@@ -102,19 +121,20 @@ router.get('/:id/favourites', function (req, res) {
  */
 
 router.post('/:id/favourites', function(req, res) {
-    var userid = getUserById(req.params.id);
-    if(req.headers.token !== "admin" && req.headers.token !== userid){
-        res.statusCode = 401;
-        return res.json('Invalid token');
-    }
-    var u_id = req.params.id;
-    var v_id = req.body.v_id;
+    getUserById(req.params.id).then(function(userid) {
+        if(req.headers.token !== "admin" && req.headers.token !== userid){
+            res.statusCode = 401;
+            return res.json('Invalid token');
+        }
+        var u_id = req.params.id;
+        var v_id = req.body.v_id;
 
-    var sqlRequest = "INSERT INTO 'favorites' (one_id, two_id) " +
-        "VALUES('" + u_id + "', '" + v_id + "')";
-    db.run(sqlRequest, function(err) {
-        if (err) return res.json(412, err);
-        res.json(true);
+        var sqlRequest = "INSERT INTO 'favourites' (v_id, u_id) " +
+            "VALUES('" + v_id + "', '" + u_id + "')";
+        db.run(sqlRequest, function(err) {
+            if (err) return res.json(412, err);
+            res.json(true);
+        });
     });
 });
 
@@ -124,14 +144,15 @@ router.post('/:id/favourites', function(req, res) {
  */
 
 router.delete('/:id/favourites', function(req, res) {
-    var userid = getUserById(req.params.id);
-    if(req.headers.token !== "admin" && req.headers.token !== userid){
-        res.statusCode = 401;
-        return res.json('Invalid token');
-    }
-    db.run("DELETE FROM favourites WHERE u_id='" + req.params.id + "' AND v_id ='" + req.body.v_id + "'", function(err) {
-        if (err) return res.json(412, err);
-        res.json(true);
+    getUserById(req.params.id).then(function(userid) {
+        if(req.headers.token !== "admin" && req.headers.token !== userid){
+            res.statusCode = 401;
+            return res.json('Invalid token');
+        }
+        db.run("DELETE FROM 'favourites' WHERE u_id='" + req.params.id + "' AND v_id ='" + req.body.v_id + "'", function(err) {
+            if (err) return res.json(412, err);
+            res.json(true);
+        });
     });
 });
 
@@ -141,17 +162,18 @@ router.delete('/:id/favourites', function(req, res) {
  */
 
 router.get('/:id/friends', function (req, res) {
-    var userid = getUserById(req.params.id);
-    if(req.headers.token !== "admin" && req.headers.token !== userid){
-        res.statusCode = 401;
-        return res.json('Invalid token');
-    }
-    var query = "SELECT id,firstname,lastname,username,email FROM users " +
-                "JOIN friends ON friends.two_id = users.id " +
-                "WHERE friends.one_id='" + req.params.id + "'";
-    db.all(query, function(err, row) {
-        if (err) return res.json(412, err);
-        res.json(row);
+    getUserById(req.params.id).then(function(userid) {
+        if(req.headers.token !== "admin" && req.headers.token !== userid){
+            res.statusCode = 401;
+            return res.json('Invalid token');
+        }
+        var query = "SELECT id,firstname,lastname,username,email FROM users " +
+            "JOIN friends ON friends.two_id = users.id " +
+            "WHERE friends.one_id='" + req.params.id + "'";
+        db.all(query, function(err, row) {
+            if (err) return res.json(412, err);
+            res.json(row);
+        });
     });
 });
 
@@ -161,23 +183,24 @@ router.get('/:id/friends', function (req, res) {
  */
 
 router.post('/:id/friends', function(req, res) {
-    var userid = getUserById(req.params.id);
-    if(req.headers.token !== "admin" && req.headers.token !== userid){
-        res.statusCode = 401;
-        return res.json('Invalid token');
-    }
-    var one_id = req.params.id;
-    var two_id = req.body.two_id;
+    getUserById(req.params.id).then(function(userid) {
+        if(req.headers.token !== "admin" && req.headers.token !== userid){
+            res.statusCode = 401;
+            return res.json('Invalid token');
+        }
+        var one_id = req.params.id;
+        var two_id = req.body.two_id;
 
-    var sqlRequest = "INSERT INTO 'friends' (one_id, two_id) " +
-        "VALUES('" + one_id + "', '" + two_id + "')";
-    var sqlRequst2 = "INSERT INTO 'friends' (one_id, two_id) " +
-        "VALUES('" + two_id + "', '" + one_id + "')";
-    db.run(sqlRequest, function(err) {
-        if (err) return res.json(412, err);
-        db.run(sqlRequst2, function(err2) {
-            if (err2) return res.json(412, err2);
-            res.json(true);
+        var sqlRequest = "INSERT INTO 'friends' (one_id, two_id) " +
+            "VALUES('" + one_id + "', '" + two_id + "')";
+        var sqlRequst2 = "INSERT INTO 'friends' (one_id, two_id) " +
+            "VALUES('" + two_id + "', '" + one_id + "')";
+        db.run(sqlRequest, function(err) {
+            if (err) return res.json(412, err);
+            db.run(sqlRequst2, function(err2) {
+                if (err2) return res.json(412, err2);
+                res.json(true);
+            });
         });
     });
 });
@@ -188,16 +211,17 @@ router.post('/:id/friends', function(req, res) {
  */
 
 router.delete('/:id/friends', function(req, res) {
-    var userid = getUserById(req.params.id);
-    if(req.headers.token !== "admin" && req.headers.token !== userid){
-        res.statusCode = 401;
-        return res.json('Invalid token');
-    }
-    db.run("DELETE FROM friends WHERE one_id='" + req.params.id + "' AND two_id ='" + req.body.two_id + "'", function(err) {
-        if (err) return res.json(412, err);
-        db.run("DELETE FROM friends WHERE one_id='" + req.body.two_id + "' AND two_id ='" + req.params.id + "'", function(err) {
+    getUserById(req.params.id).then(function(userid) {
+        if(req.headers.token !== "admin" && req.headers.token !== userid){
+            res.statusCode = 401;
+            return res.json('Invalid token');
+        }
+        db.run("DELETE FROM 'friends' WHERE one_id='" + req.params.id + "' AND two_id ='" + req.body.two_id + "'", function(err) {
             if (err) return res.json(412, err);
-            res.json(true);
+            db.run("DELETE FROM friends WHERE one_id='" + req.body.two_id + "' AND two_id ='" + req.params.id + "'", function(err) {
+                if (err) return res.json(412, err);
+                res.json(true);
+            });
         });
     });
 });
